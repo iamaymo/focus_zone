@@ -10,6 +10,7 @@ class MyButton extends StatelessWidget {
   final Color? borderColor;
   final Color? textColor;
   final Widget? icon;
+  final Widget? trailingIcon;
 
   const MyButton({
     super.key,
@@ -21,6 +22,7 @@ class MyButton extends StatelessWidget {
     this.borderColor,
     this.textColor,
     this.icon,
+    this.trailingIcon,
   });
 
   @override
@@ -66,6 +68,10 @@ class MyButton extends StatelessWidget {
                 ),
               ),
             ),
+            if (trailingIcon != null) ...[
+              const SizedBox(width: 8),
+              trailingIcon!,
+            ],
           ],
         ),
       ),

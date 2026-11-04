@@ -138,12 +138,18 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                         label: loc.enterApp,
                         backgroundColor: colors.primary,
                         textColor: colors.onPrimary,
-                        icon: Icon(
-                          isArabic
-                              ? Icons.arrow_back_rounded
-                              : Icons.arrow_forward_rounded,
-                          color: colors.onPrimary,
-                        ),
+                        icon: isArabic
+                            ? Icon(
+                                Icons.arrow_back_rounded,
+                                color: colors.onPrimary,
+                              )
+                            : null,
+                        trailingIcon: !isArabic
+                            ? Icon(
+                                Icons.arrow_forward_rounded,
+                                color: colors.onPrimary,
+                              )
+                            : null,
                         onPressed: _enterApp,
                       ),
 
