@@ -328,7 +328,6 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
     return iconsData.map((data) {
       return Positioned(
         top: data.top,
-        bottom: data.bottom,
         left: data.left,
         right: data.right,
         child: Transform.rotate(
@@ -518,7 +517,6 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
 
 class _IconBadge {
   final double? top;
-  final double? bottom;
   final double? left;
   final double? right;
   final IconData icon;
@@ -528,7 +526,6 @@ class _IconBadge {
 
   const _IconBadge({
     this.top,
-    this.bottom,
     this.left,
     this.right,
     required this.icon,
