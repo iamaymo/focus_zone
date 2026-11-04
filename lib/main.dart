@@ -3,12 +3,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'l10n/app_localizations.dart';
 import 'services/locale_controller.dart';
 import 'services/preferences_service.dart';
+import 'services/task_service.dart';
 import 'view/home_screen.dart';
 import 'view/user_getaway.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await LocaleController.instance.init();
+  await TaskService.instance.init();
   final hasSeenGateway = await PreferencesService.hasSeenGateway();
 
   runApp(MyApp(hasSeenGateway: hasSeenGateway));
