@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../l10n/app_localizations.dart';
 import '../models/task_item.dart';
 import '../services/locale_controller.dart';
@@ -12,14 +13,56 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   String _selectedFilter = 'all';
   bool _isSearching = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  late final AnimationController _searchAnimationController;
+  late final Animation<double> _searchAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 380),
+      reverseDuration: const Duration(milliseconds: 320),
+    );
+    _searchAnimation = CurvedAnimation(
+      parent: _searchAnimationController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
+  }
+
+  void _openSearch() {
+    setState(() {
+      _isSearching = true;
+    });
+    _searchAnimationController.forward();
+    _searchFocusNode.requestFocus();
+  }
+
+  void _closeSearch() {
+    _searchFocusNode.unfocus();
+    _searchAnimationController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+          _searchQuery = '';
+          _searchController.clear();
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _searchAnimationController.dispose();
+    _searchFocusNode.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -52,8 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final colors = Theme.of(context).colorScheme;
     final isEditing = taskToEdit != null;
 
-    final titleController =
-        TextEditingController(text: taskToEdit?.title ?? '');
+    final titleController = TextEditingController(
+      text: taskToEdit?.title ?? '',
+    );
     var currentPriority = taskToEdit?.priority ?? TaskPriority.medium;
     var isDone = taskToEdit?.isCompleted ?? false;
 
@@ -122,8 +166,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             tooltip: loc.delete,
                             onPressed: () async {
-                              await TaskService.instance
-                                  .deleteTask(taskToEdit.id);
+                              await TaskService.instance.deleteTask(
+                                taskToEdit.id,
+                              );
                               if (!ctx.mounted) return;
                               Navigator.pop(ctx);
                             },
@@ -186,8 +231,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(12),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                ),
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? pColor
@@ -279,8 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 await TaskService.instance.updateTask(updated);
                               } else {
                                 final newTask = TaskItem(
-                                  id: DateTime.now()
-                                      .millisecondsSinceEpoch
+                                  id: DateTime.now().millisecondsSinceEpoch
                                       .toString(),
                                   title: text,
                                   priority: currentPriority,
@@ -342,11 +387,9 @@ class _HomeScreenState extends State<HomeScreen> {
             tooltip: loc.pomodoroTitle,
             icon: const Icon(Icons.timer_outlined),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const PomodoroScreen(),
-                ),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const PomodoroScreen()));
             },
           ),
 
@@ -374,8 +417,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Filter Bar or Search Input (toggleable)
+            // Filter Bar and Expanding Search Bar
             Container(
+              height: 60,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: colors.surface,
@@ -385,79 +429,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                child: _isSearching
-                    ? Container(
-                        key: const ValueKey('search_active'),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: BoxDecoration(
-                          color: colors.primary.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: colors.primary.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.search_rounded,
-                              color: colors.primary,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                controller: _searchController,
-                                autofocus: true,
-                                decoration: InputDecoration(
-                                  hintText: loc.searchHint,
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                ),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _searchQuery = val.trim();
-                                  });
-                                },
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close_rounded),
-                              tooltip: loc.cancel,
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _isSearching = false;
-                                  _searchQuery = '';
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      )
-                    : Row(
-                        key: const ValueKey('filter_bar'),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // 1. Filter Bar with Search Button (fades out when searching)
+                  FadeTransition(
+                    opacity: Tween<double>(begin: 1.0, end: 0.0).animate(
+                      CurvedAnimation(
+                        parent: _searchAnimationController,
+                        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+                      ),
+                    ),
+                    child: IgnorePointer(
+                      ignoring: _isSearching,
+                      child: Row(
                         children: [
-                          // Search icon button next to filters
                           IconButton(
                             icon: Icon(
                               Icons.search_rounded,
                               color: colors.primary,
                             ),
                             tooltip: loc.search,
-                            onPressed: () {
-                              setState(() {
-                                _isSearching = true;
-                              });
-                            },
+                            onPressed: _openSearch,
                           ),
                           const SizedBox(width: 4),
-
-                          // Scrollable Filters
                           Expanded(
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
@@ -496,6 +491,73 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+
+                  // 2. Expanding Search Bar (visibly stretches/pulls open across the screen)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: SizeTransition(
+                      sizeFactor: _searchAnimation,
+                      axis: Axis.horizontal,
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Container(
+                        height: 44,
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: colors.surface,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: colors.primary,
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: colors.primary.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.search_rounded,
+                              color: colors.primary,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                focusNode: _searchFocusNode,
+                                decoration: InputDecoration(
+                                  hintText: loc.searchHint,
+                                  border: InputBorder.none,
+                                  isDense: true,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                ),
+                                onChanged: (val) {
+                                  setState(() {
+                                    _searchQuery = val.trim();
+                                  });
+                                },
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close_rounded),
+                              tooltip: loc.cancel,
+                              onPressed: _closeSearch,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -504,15 +566,18 @@ class _HomeScreenState extends State<HomeScreen> {
               child: ListenableBuilder(
                 listenable: TaskService.instance,
                 builder: (context, _) {
-                  var tasks = TaskService.instance
-                      .getTasks(filter: _selectedFilter);
+                  var tasks = TaskService.instance.getTasks(
+                    filter: _selectedFilter,
+                  );
 
                   // Apply search query filter if searching
                   if (_searchQuery.isNotEmpty) {
                     tasks = tasks
-                        .where((t) => t.title
-                            .toLowerCase()
-                            .contains(_searchQuery.toLowerCase()))
+                        .where(
+                          (t) => t.title.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ),
+                        )
                         .toList();
                   }
 
@@ -601,11 +666,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected ? Colors.white : color,
-            ),
+            Icon(icon, size: 16, color: isSelected ? Colors.white : color),
             const SizedBox(width: 6),
             Text(
               label,
@@ -719,10 +780,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 tooltip: loc.pomodoroTitle,
                 padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 34,
-                  minHeight: 34,
-                ),
+                constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
