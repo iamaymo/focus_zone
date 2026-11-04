@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../models/task_item.dart';
 import '../services/task_service.dart';
+import '../services/timer_settings_service.dart';
 
 enum PomodoroMode { focus, shortBreak, longBreak }
 
@@ -16,10 +17,10 @@ class PomodoroScreen extends StatefulWidget {
 }
 
 class _PomodoroScreenState extends State<PomodoroScreen> {
-  // Timer settings (in minutes)
-  int _focusMinutes = 25;
-  int _shortBreakMinutes = 5;
-  int _longBreakMinutes = 15;
+  // Timer settings (in minutes) — initialized from defaults
+  late int _focusMinutes;
+  late int _shortBreakMinutes;
+  late int _longBreakMinutes;
 
   PomodoroMode _currentMode = PomodoroMode.focus;
   late int _remainingSeconds;
@@ -32,6 +33,11 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   void initState() {
     super.initState();
     _currentTask = widget.task;
+    // Read default durations from the global settings service
+    final defaults = TimerSettingsService.instance;
+    _focusMinutes = defaults.focusMinutes;
+    _shortBreakMinutes = defaults.shortBreakMinutes;
+    _longBreakMinutes = defaults.longBreakMinutes;
     _remainingSeconds = _focusMinutes * 60;
   }
 
@@ -119,17 +125,13 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
           children: [
             const Icon(Icons.celebration_rounded, color: Colors.amber, size: 28),
             const SizedBox(width: 10),
-            Text(loc.sessionCompleted),
+            Expanded(child: Text(loc.sessionCompleted)),
           ],
         ),
         content: Text(
           _currentMode == PomodoroMode.focus
-              ? (loc.isArabic
-                  ? 'حان وقت أخذ استراحة قصيرة لتجديد طاقتك.'
-                  : 'Time to take a short break and recharge.')
-              : (loc.isArabic
-                  ? 'انتهت الاستراحة! هل أنت جاهز للعودة إلى التركيز؟'
-                  : 'Break is over! Ready to get back into focus?'),
+              ? loc.breakTimeMessage
+              : loc.focusTimeMessage,
         ),
         actions: [
           if (_currentTask != null && !_currentTask!.isCompleted)
@@ -146,7 +148,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
               Navigator.pop(ctx);
               _skipSession();
             },
-            child: Text(loc.isArabic ? 'الجلسة التالية' : 'Next Session'),
+            child: Text(loc.nextSession),
           ),
         ],
       ),
@@ -166,8 +168,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final theme = Theme.of(context);
-            final colors = theme.colorScheme;
+            final colors = Theme.of(context).colorScheme;
 
             return Container(
               padding: EdgeInsets.only(
@@ -365,8 +366,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final modeColor = _getModeColor(colors);
 
     final progress = _totalSecondsForCurrentMode > 0
@@ -380,8 +380,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
         actions: [
           IconButton(
             tooltip: loc.customizeTimers,
@@ -423,7 +421,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                               loc.workingOn,
                               style: TextStyle(
                                 fontSize: 12,
-                                color: colors.secondary.withValues(alpha: 0.6),
+                                color: colors.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -549,9 +547,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _isRunning
-                            ? (loc.isArabic ? 'جلسة جارية' : 'Running')
-                            : (loc.isArabic ? 'متوقف مؤقتاً' : 'Paused'),
+                        _isRunning ? loc.runningSession : loc.paused,
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -613,7 +609,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                     iconSize: 28,
                     onPressed: _skipSession,
                     icon: const Icon(Icons.skip_next_rounded),
-                    tooltip: loc.isArabic ? 'تخطي الجلسة' : 'Skip Session',
+                    tooltip: loc.skipSession,
                   ),
                 ],
               ),
@@ -624,4 +620,3 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
     );
   }
 }
-

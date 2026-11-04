@@ -96,5 +96,16 @@ class TaskService extends ChangeNotifier {
     await _box!.delete(id);
     notifyListeners();
   }
+
+  Future<void> deleteAllTasks() async {
+    if (_box == null) return;
+    await _box!.clear();
+    notifyListeners();
+  }
+
+  /// Re-add a deleted task (for undo)
+  Future<void> restoreTask(TaskItem task) async {
+    await addTask(task);
+  }
 }
 

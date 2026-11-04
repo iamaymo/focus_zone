@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../models/task_item.dart';
-import '../services/locale_controller.dart';
 import '../services/task_service.dart';
 import 'pomodoro_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -379,8 +379,6 @@ class _HomeScreenState extends State<HomeScreen>
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
         actions: [
           // Pomodoro Timer Icon in AppBar
           IconButton(
@@ -393,20 +391,20 @@ class _HomeScreenState extends State<HomeScreen>
             },
           ),
 
-          // Language Globe Icon
+          // Settings Gear Icon (replaces language globe)
           IconButton(
-            tooltip: loc.switchLanguage,
-            icon: const Icon(Icons.language_rounded),
+            tooltip: loc.settings,
+            icon: const Icon(Icons.settings_rounded),
             onPressed: () {
-              LocaleController.instance.toggleLocale();
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
             },
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showTaskDialog(),
-        backgroundColor: colors.primary,
-        foregroundColor: colors.onPrimary,
         icon: const Icon(Icons.add_rounded),
         label: Text(
           loc.addTask,
@@ -494,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
 
-                  // 2. Expanding Search Bar (visibly stretches/pulls open across the screen)
+                  // 2. Expanding Search Bar
                   Align(
                     alignment: AlignmentDirectional.centerStart,
                     child: SizeTransition(
@@ -623,7 +621,7 @@ class _HomeScreenState extends State<HomeScreen>
                     itemCount: tasks.length,
                     itemBuilder: (context, index) {
                       final task = tasks[index];
-                      return _buildTaskCard(task, colors);
+                      return _buildDismissibleTaskCard(task, colors);
                     },
                   );
                 },
@@ -642,8 +640,7 @@ class _HomeScreenState extends State<HomeScreen>
     required Color color,
   }) {
     final isSelected = _selectedFilter == id;
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: () {
@@ -678,6 +675,63 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── Dismissible wrapper for swipe-to-delete ───
+  Widget _buildDismissibleTaskCard(TaskItem task, ColorScheme colors) {
+    final loc = AppLocalizations.of(context);
+
+    return Dismissible(
+      key: ValueKey(task.id),
+      direction: DismissDirection.horizontal,
+      background: _buildSwipeBackground(AlignmentDirectional.centerStart),
+      secondaryBackground:
+          _buildSwipeBackground(AlignmentDirectional.centerEnd),
+      confirmDismiss: (_) async => true,
+      onDismissed: (_) async {
+        // Delete the task
+        await TaskService.instance.deleteTask(task.id);
+
+        if (!mounted) return;
+
+        // Show undo snackbar
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(loc.taskDeleted),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            action: SnackBarAction(
+              label: loc.undo,
+              onPressed: () async {
+                await TaskService.instance.restoreTask(task);
+              },
+            ),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      },
+      child: _buildTaskCard(task, colors),
+    );
+  }
+
+  Widget _buildSwipeBackground(AlignmentDirectional alignment) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.red,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: const Icon(
+        Icons.delete_outline_rounded,
+        color: Colors.white,
+        size: 28,
       ),
     );
   }

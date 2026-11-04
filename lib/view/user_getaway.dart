@@ -44,9 +44,11 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xff3a2b1f),
+              Color.lerp(colors.primary, Colors.black, 0.4) ??
+                  const Color(0xff3a2b1f),
               colors.primary,
-              const Color(0xff7c6653),
+              Color.lerp(colors.primary, Colors.white, 0.15) ??
+                  const Color(0xff7c6653),
             ],
           ),
         ),
@@ -81,13 +83,13 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                   vertical: 30,
                 ),
                 decoration: BoxDecoration(
-                  color: colors.tertiary.withValues(alpha: 0.98),
+                  color: colors.surface,
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(32),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: colors.secondary.withValues(alpha: 0.25),
+                      color: Colors.black.withValues(alpha: 0.25),
                       blurRadius: 24,
                       offset: const Offset(0, -6),
                     ),
@@ -104,7 +106,7 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 18),
                         decoration: BoxDecoration(
-                          color: colors.secondary.withValues(alpha: 0.2),
+                          color: colors.onSurface.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -114,7 +116,7 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                         loc.welcomeTitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: colors.secondary,
+                          color: colors.onSurface,
                           fontSize: 25,
                           fontWeight: FontWeight.bold,
                           height: 1.25,
@@ -125,7 +127,7 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                         loc.welcomeSubtitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: colors.secondary.withValues(alpha: 0.72),
+                          color: colors.onSurface.withValues(alpha: 0.72),
                           fontSize: 14,
                           height: 1.4,
                         ),
@@ -217,7 +219,7 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                                     style: TextStyle(
                                       color: isArabic
                                           ? colors.onPrimary
-                                          : colors.secondary,
+                                          : colors.onSurface,
                                       fontWeight: isArabic
                                           ? FontWeight.bold
                                           : FontWeight.w500,
@@ -252,7 +254,7 @@ class _UserGatewayPageState extends State<UserGatewayPage> {
                                     style: TextStyle(
                                       color: !isArabic
                                           ? colors.onPrimary
-                                          : colors.secondary,
+                                          : colors.onSurface,
                                       fontWeight: !isArabic
                                           ? FontWeight.bold
                                           : FontWeight.w500,
