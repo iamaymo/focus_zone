@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/constants/storage_keys.dart';
+
 class ThemeController extends ChangeNotifier {
   static final ThemeController instance = ThemeController._internal();
   ThemeController._internal();
 
-  static const String _keyThemeMode = 'theme_mode';
-  static const String _keyAccentColor = 'accent_color';
-  static const String _keyFontFamily = 'font_family';
+  static const String _keyThemeMode = StorageKeys.themeMode;
+  static const String _keyAccentColor = StorageKeys.accentColor;
+  static const String _keyFontFamily = StorageKeys.fontFamily;
 
   ThemeMode _themeMode = ThemeMode.light;
   int _accentColorIndex = 0;

@@ -1,13 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/constants/storage_keys.dart';
+
 class TimerSettingsService extends ChangeNotifier {
   static final TimerSettingsService instance = TimerSettingsService._internal();
   TimerSettingsService._internal();
 
-  static const String _keyFocusMinutes = 'default_focus_minutes';
-  static const String _keyShortBreak = 'default_short_break_minutes';
-  static const String _keyLongBreak = 'default_long_break_minutes';
+  static const String _keyFocusMinutes = StorageKeys.defaultFocusMinutes;
+  static const String _keyShortBreak = StorageKeys.defaultShortBreakMinutes;
+  static const String _keyLongBreak = StorageKeys.defaultLongBreakMinutes;
 
   int _focusMinutes = 25;
   int _shortBreakMinutes = 5;

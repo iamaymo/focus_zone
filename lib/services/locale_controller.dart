@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/constants/storage_keys.dart';
+
 class LocaleController extends ChangeNotifier {
   static final LocaleController instance = LocaleController._internal();
   LocaleController._internal();
 
-  static const String _prefLanguageKey = 'app_language_code';
   Locale _locale = const Locale('ar');
 
   Locale get locale => _locale;
@@ -13,7 +14,7 @@ class LocaleController extends ChangeNotifier {
 
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
-    final savedCode = prefs.getString(_prefLanguageKey);
+    final savedCode = prefs.getString(StorageKeys.languageCode);
     if (savedCode == 'en' || savedCode == 'ar') {
       _locale = Locale(savedCode!);
     } else {
@@ -28,7 +29,7 @@ class LocaleController extends ChangeNotifier {
     _locale = newLocale;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_prefLanguageKey, newLocale.languageCode);
+    await prefs.setString(StorageKeys.languageCode, newLocale.languageCode);
   }
 
   Future<void> toggleLocale() async {

@@ -1,12 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../core/constants/storage_keys.dart';
 import '../models/task_item.dart';
 
 class TaskService extends ChangeNotifier {
   static final TaskService instance = TaskService._internal();
   TaskService._internal();
 
-  static const String boxName = 'focus_zone_tasks_box';
+  static const String boxName = StorageKeys.tasksBox;
   Box? _box;
 
   Future<void> init() async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/extensions/task_priority_extension.dart';
 import '../l10n/app_localizations.dart';
 import '../models/task_item.dart';
 import '../services/task_service.dart';
@@ -65,29 +66,6 @@ class _HomeScreenState extends State<HomeScreen>
     _searchFocusNode.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  Color _getPriorityColor(TaskPriority priority) {
-    switch (priority) {
-      case TaskPriority.high:
-        return const Color(0xffe53935);
-      case TaskPriority.medium:
-        return const Color(0xfff57c00);
-      case TaskPriority.low:
-        return const Color(0xff43a047);
-    }
-  }
-
-  String _getPriorityLabel(BuildContext context, TaskPriority priority) {
-    final loc = AppLocalizations.of(context);
-    switch (priority) {
-      case TaskPriority.high:
-        return loc.high;
-      case TaskPriority.medium:
-        return loc.medium;
-      case TaskPriority.low:
-        return loc.low;
-    }
   }
 
   void _showTaskDialog({TaskItem? taskToEdit}) {
@@ -217,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen>
                     Row(
                       children: TaskPriority.values.map((priority) {
                         final isSelected = currentPriority == priority;
-                        final pColor = _getPriorityColor(priority);
+                        final pColor = priority.color;
 
                         return Expanded(
                           child: Padding(
@@ -245,7 +223,7 @@ class _HomeScreenState extends State<HomeScreen>
                                   ),
                                 ),
                                 child: Text(
-                                  _getPriorityLabel(context, priority),
+                                  priority.label(context),
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: isSelected
@@ -738,7 +716,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildTaskCard(TaskItem task, ColorScheme colors) {
     final loc = AppLocalizations.of(context);
-    final pColor = _getPriorityColor(task.priority);
+    final pColor = task.priority.color;
     final isDone = task.isCompleted;
 
     return Card(
@@ -812,7 +790,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 child: Text(
-                  _getPriorityLabel(context, task.priority),
+                  task.priority.label(context),
                   style: TextStyle(
                     color: isDone
                         ? colors.onSurface.withValues(alpha: 0.5)

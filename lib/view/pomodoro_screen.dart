@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../core/widgets/duration_adjuster_tile.dart';
 import '../l10n/app_localizations.dart';
 import '../models/task_item.dart';
 import '../services/task_service.dart';
@@ -210,7 +211,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   const SizedBox(height: 20),
 
                   // Focus Slider
-                  _buildDurationAdjuster(
+                  DurationAdjusterTile(
                     title: loc.focusMinutes,
                     value: tempFocus,
                     min: 1,
@@ -222,7 +223,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   const SizedBox(height: 12),
 
                   // Short Break Slider
-                  _buildDurationAdjuster(
+                  DurationAdjusterTile(
                     title: loc.shortBreakMinutes,
                     value: tempShort,
                     min: 1,
@@ -234,7 +235,7 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
                   const SizedBox(height: 12),
 
                   // Long Break Slider
-                  _buildDurationAdjuster(
+                  DurationAdjusterTile(
                     title: loc.longBreakMinutes,
                     value: tempLong,
                     min: 1,
@@ -279,57 +280,6 @@ class _PomodoroScreenState extends State<PomodoroScreen> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildDurationAdjuster({
-    required String title,
-    required int value,
-    required int min,
-    required int max,
-    required Color color,
-    required ValueChanged<int> onChanged,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove_circle_outline_rounded),
-                color: color,
-                onPressed: value > min ? () => onChanged(value - 1) : null,
-              ),
-              Text(
-                '$value',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add_circle_outline_rounded),
-                color: color,
-                onPressed: value < max ? () => onChanged(value + 1) : null,
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
