@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+
+import 'features/gateway/presentation/user_gateway_screen.dart';
 import 'l10n/app_localizations.dart';
 import 'services/locale_controller.dart';
 import 'services/preferences_service.dart';
@@ -7,7 +9,6 @@ import 'services/task_service.dart';
 import 'services/theme_controller.dart';
 import 'services/timer_settings_service.dart';
 import 'view/home_screen.dart';
-import 'view/user_getaway.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +56,7 @@ class MyApp extends StatelessWidget {
               themeMode: themeCtrl.themeMode,
               home: hasSeenGateway
                   ? const HomeScreen()
-                  : const UserGatewayPage(),
+                  : const UserGatewayScreen(),
             );
           },
         );
